@@ -1,0 +1,17 @@
+{
+  "name": "booksapi",
+  "version": "1.0.0",
+  "description": "Book store api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "liamasaurus",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.0"
+  }
+}
