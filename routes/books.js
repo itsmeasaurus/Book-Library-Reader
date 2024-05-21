@@ -1,8 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const Book = require('../models/Book')
+const authMiddleware = require('../middlewares/authMiddleware')
 
-router.get('/', async(req, res) => {
+router.get('/', authMiddleware, async(req, res) => {
     try {
         const books = await Book.find();
         res.json(books);
@@ -11,11 +12,11 @@ router.get('/', async(req, res) => {
     }
 })
 
-router.get('/:id', getBook, (req, res) => {
+router.get('/:id', authMiddleware, getBook, (req, res) => {
     res.json(res.book)
 })
 
-router.post('/', async(req, res) => {
+router.post('/', authMiddleware, async(req, res) => {
     const book = new Book({
         title: req.body.title,
         author: req.body.author,
@@ -32,7 +33,7 @@ router.post('/', async(req, res) => {
     }
 })
 
-router.patch('/:id', getBook, async(req, res) => {
+router.patch('/:id', authMiddleware, getBook, async(req, res) => {
     if(req.body.title != null) {
         res.body.title = req.body.title
     }
@@ -57,7 +58,7 @@ router.patch('/:id', getBook, async(req, res) => {
     }
 })
 
-router.delete('/:id', getBook, async(req, res) => {
+router.delete('/:id', authMiddleware, getBook, async(req, res) => {
     try {
         await res.book.remove()
         res.json({ message: "The book is removed"})
@@ -65,9 +66,6 @@ router.delete('/:id', getBook, async(req, res) => {
         res.status(500).json({ message: error.message})
     }
 })
-
-
-
 
 async function getBook(req, res, next)
 {
