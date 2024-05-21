@@ -2,13 +2,11 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParse = require('body-parser')
 const bodyParser = require('body-parser')
+require('dotenv').config()
 
 const app = express()
 const port = 3000
-
-require('dotenv').config()
 const dbConnection = process.env.DB_CONNECTION_URI
-
 
 // Middleware
 app.use(bodyParser.json())
@@ -20,7 +18,9 @@ mongoose.connect(dbConnection)
 
 // Routes
 const bookRouters = require('./routes/books')
+const authRouters = require('./routes/auth')
 app.use('/books', bookRouters)
+app.use('/auth', authRouters)
 
 app.get('/', (req,res) => {
     res.send('Welcome to book api')
