@@ -20,6 +20,10 @@ const bookSchema = new mongoose.Schema({
     language: {
         type: String,
         required: true
+    },
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
     }
 })
 
