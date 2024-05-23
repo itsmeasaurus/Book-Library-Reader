@@ -1,11 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const Book = require('../models/Book')
+const Category = require('../models/Category')
 const authMiddleware = require('../middlewares/authMiddleware')
 
 router.get('/', authMiddleware, async(req, res) => {
     try {
-        const books = await Book.find();
+        const books = await Book.find().populate('category');
         res.json(books);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -17,38 +18,26 @@ router.get('/:id', authMiddleware, getBook, (req, res) => {
 })
 
 router.post('/', authMiddleware, async(req, res) => {
-    const book = new Book({
-        title: req.body.title,
-        author: req.body.author,
-        published_date: req.body.published_date,
-        pages: req.body.pages,
-        language: req.body.language
-    })
+    const { title, author, published_date, pages, language, categoryName } = req.body
 
     try {
+        let category = await Category.findOne({ name: categoryName })
+        if(!category) {
+            category = new Category({ name: categoryName })
+            await category.save()
+        }
+
+        const book = new Book({ title, author, published_date, pages, language, category: category.id })
         const newBook = await book.save()
-        res.status(200).json({ message: "A new book is created"})
+
+        res.status(200).json({ message: "A new book is created", book: newBook})
     } catch (error) {
         res.status(500).json({ message: error.message})
     }
 })
 
 router.patch('/:id', authMiddleware, getBook, async(req, res) => {
-    if(req.body.title != null) {
-        res.body.title = req.body.title
-    }
-    if (req.body.author != null) {
-        res.book.author = req.body.author;
-    }
-    if (req.body.published_date != null) {
-        res.book.published_date = req.body.published_date;
-    }
-    if (req.body.pages != null) {
-        res.book.pages = req.body.pages;
-    }
-    if (req.body.language != null) {
-        res.book.language = req.body.language;
-    }
+    Object.assign(res.book, req.body)
 
     try {
         const updateBook = await res.book.save()
@@ -72,8 +61,8 @@ async function getBook(req, res, next)
     let book;
 
     try {
-        book = await Book.findById(req.params.id)
-        if(book == null) {
+        book = await Book.findById(req.params.id).populate('category')
+        if(!book) {
             return res.status(400).json({ message: "Cannot find the book"})
         }
     } catch (error) {
