@@ -21,12 +21,7 @@ router.post('/', authMiddleware, async(req, res) => {
     const { title, author, published_date, pages, language, categoryName } = req.body
 
     try {
-        let category = await Category.findOne({ name: categoryName })
-        if(!category) {
-            category = new Category({ name: categoryName })
-            await category.save()
-        }
-
+        const category = await findOrCreateCategory(categoryName)
         const book = new Book({ title, author, published_date, pages, language, category: category.id })
         const newBook = await book.save()
 
@@ -41,14 +36,9 @@ router.patch('/:id', authMiddleware, getBook, async(req, res) => {
 
     try{
         if(categoryName) {
-            let category = await Category.findOne({ name: categoryName})
-            if(!category) {
-                category = new Category({ name: categoryName})
-                await category.save()
-            }
+            let category = await findOrCreateCategory(categoryName)
             bookUpdates.category = category.id
         }
-
 
         Object.assign(res.book, bookUpdates)
         const updateBook = await res.book.save()
@@ -66,6 +56,16 @@ router.delete('/:id', authMiddleware, getBook, async(req, res) => {
         res.status(500).json({ message: error.message})
     }
 })
+
+async function findOrCreateCategory(categoryName) {
+    let category = await Category.findOne({ name: categoryName})
+
+    if(!category){
+        category = new Category({ name:categoryName})
+        await category.save()
+    }
+    return category
+}
 
 async function getBook(req, res, next)
 {
