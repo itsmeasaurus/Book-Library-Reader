@@ -37,12 +37,23 @@ router.post('/', authMiddleware, async(req, res) => {
 })
 
 router.patch('/:id', authMiddleware, getBook, async(req, res) => {
-    Object.assign(res.book, req.body)
+    const { categoryName, ...bookUpdates } = req.body
 
-    try {
+    try{
+        if(categoryName) {
+            let category = await Category.findOne({ name: categoryName})
+            if(!category) {
+                category = new Category({ name: categoryName})
+                await category.save()
+            }
+            bookUpdates.category = category.id
+        }
+
+
+        Object.assign(res.book, bookUpdates)
         const updateBook = await res.book.save()
-        res.json(updateBook)        
-    } catch (error) {
+        res.json(updateBook)      
+    }catch (error) {
         res.status(500).json({ message: error.message})
     }
 })
