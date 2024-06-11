@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 router.post('/register', async(req,res) => {
     const {username, password} = req.body
@@ -10,6 +11,7 @@ router.post('/register', async(req,res) => {
         if(existingUser) {
             return res.status(400).json({ message: "Username already exists"})
         }
+
         const newUser = new User({ username, password})
         await newUser.save()
         return res.status(200).json({ message: "A new user is created"})
@@ -35,6 +37,28 @@ router.post('/login', async(req, res) => {
         res.json({ token })
     } catch (error) {
         return res.status(500).json({ message: error.message})
+    }
+})
+
+router.patch('/passchange', authMiddleware, async(req, res) => {
+    const {username, newPassword} = req.body
+
+    if(!newPassword) {
+        return res.status(400).json({ message: "New password is required"})
+    }
+
+    try {
+        const user = await User.findOne({ username })
+        if(!user) {
+            return res.status(400).json({ message: "User is not found"})
+        }
+
+        user.password = newPassword
+        await user.save()
+        return res.status(200).json({ message: "Password Updated Successfully "})
+    } catch (error) {
+        return res.status(500).json({ message: error.message})
+
     }
 })
 
