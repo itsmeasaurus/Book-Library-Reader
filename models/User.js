@@ -20,14 +20,20 @@ const UserSchema = new mongoose.Schema({
 UserSchema.pre('save', async function(next) {
     const user = this
     if(!user.isModified('password')) return next()
-    const salt = await bcrypt.genSalt(10)
-    const hash = await bcrypt.hash(user.password, salt)
-    user.password = hash
+    user.password = this.encryptPassword(user.password)
     next()
 })
 
-UserSchema.methods.comparePassword = async function(password) {
-    return await bcrypt.compare(password, this.password)
+UserSchema.methods = {
+    encryptPassword: async function(password) {
+        const salt = await bcrypt.genSalt(10)
+        return await bcrypt.hash(password, salt) 
+    },
+    comparePassword: async function(password) {
+        return await bcrypt.compare(password, this.password)
+    },
 }
+
+UserSchema.methods.
 
 module.exports = mongoose.model('User', UserSchema)
